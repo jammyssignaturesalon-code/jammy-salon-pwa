@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171411">
+  <meta name="description" content="Jammy's Signature Salon — private billing and invoice app.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>Jammy's Signature Salon</title>
+  <style>
+    :root{color-scheme:dark;--bg:#171411;--panel:#211d18;--gold:#d6b36c;--gold2:#f0d69b;--muted:#b8afa1;--line:#42382b}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#3b3020 0,#171411 58%);color:#f7f1e7;font-family:Georgia,'Times New Roman',serif;display:flex;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom))}
+    .wrap{width:min(100%,480px);text-align:center}.logo{width:132px;height:132px;object-fit:contain;border-radius:50%;background:#f6f0e4;padding:5px;box-shadow:0 12px 38px #0008;margin:0 auto 22px}.eyebrow{font:600 11px/1.5 Arial,sans-serif;letter-spacing:3px;color:var(--gold);text-transform:uppercase}.brand{font-size:clamp(27px,7vw,36px);line-height:1.1;margin:10px 0;color:var(--gold2);font-weight:normal}.sub{font:12px Arial,sans-serif;letter-spacing:2px;color:var(--muted);margin:0 0 26px}.panel{background:#211d18eF;border:1px solid var(--line);border-radius:20px;padding:24px 20px;box-shadow:0 18px 55px #0006}.panel h2{font-size:21px;font-weight:normal;color:var(--gold2);margin:0 0 10px}.panel p{font:14px/1.65 Arial,sans-serif;color:#d5cabb;margin:0 0 18px}.btn{display:block;width:100%;border:0;border-radius:12px;padding:16px 18px;background:linear-gradient(135deg,#e4c782,#b38b43);color:#21180c;font:bold 15px Arial,sans-serif;text-decoration:none;cursor:pointer}.install{margin-top:11px;background:transparent;border:1px solid #9e8049;color:var(--gold2)}.steps{margin-top:18px;text-align:left;border-top:1px solid var(--line);padding-top:16px}.steps h3{font:600 12px Arial,sans-serif;color:var(--gold);letter-spacing:1.3px;text-transform:uppercase;margin:0 0 10px}.steps p{font:13px/1.55 Arial,sans-serif;margin:7px 0;color:var(--muted)}.note{font:11px/1.5 Arial,sans-serif;color:#928879;margin:18px 6px 0}.status{font:12px/1.5 Arial,sans-serif;color:#f0d69b;margin-top:12px;min-height:18px}.hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <img class="logo" src="icons/icon-512.png" alt="Jammy's Signature Salon logo">
+    <div class="eyebrow">Welcome to</div>
+    <h1 class="brand">Jammy's Signature Salon</h1>
+    <p class="sub">BILLING · INVOICES · REPORTS</p>
+    <section class="panel">
+      <h2>Your salon billing workspace</h2>
+      <p>Open the secure billing app to create invoices, view invoice history, manage services and check salon reports.</p>
+      <a id="launch" class="btn" href="#">OPEN BILLING APP</a>
+      <button id="install" class="btn install hidden" type="button">INSTALL APP</button>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div class="steps" id="ios-help">
+        <h3>Install on iPhone / iPad</h3>
+        <p>1. Open this page in Safari.</p>
+        <p>2. Tap the Share icon.</p>
+        <p>3. Choose <b>Add to Home Screen</b>, then tap Add.</p>
+      </div>
+      <div class="steps" id="android-help">
+        <h3>Install on Android</h3>
+        <p>Use the Install App button when it appears, or open the browser menu and choose <b>Install app</b> / <b>Add to Home screen</b>.</p>
+      </div>
+    </section>
+    <p class="note">Private salon use. Sign in with the authorised salon Google account when prompted. Do not share this app link publicly.</p>
+  </main>
+  <script src="config.js"></script>
+  <script>
+    const url = window.JAMMY_APP_CONFIG && window.JAMMY_APP_CONFIG.billingUrl;
+    const launch = document.getElementById('launch');
+    const status = document.getElementById('status');
+    if (url && /^https:\/\/script\.google\.com\/.*\/exec(?:\?.*)?$/.test(url)) {
+      launch.href = url;
+      launch.target = '_blank';
+      launch.rel = 'noopener';
+    } else {
+      launch.addEventListener('click', e => { e.preventDefault(); status.textContent = 'The billing app link has not been configured yet. Update config.js with your deployed Apps Script /exec URL.'; });
+    }
+    let installPrompt;
+    const installButton = document.getElementById('install');
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installButton.classList.remove('hidden'); });
+    installButton.addEventListener('click', async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      const result = await installPrompt.userChoice;
+      status.textContent = result.outcome === 'accepted' ? 'Installation started.' : 'You can install the app later from your browser menu.';
+      installPrompt = null; installButton.classList.add('hidden');
+    });
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+    }
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    document.getElementById('ios-help').classList.toggle('hidden', !isIOS);
+    document.getElementById('android-help').classList.toggle('hidden', isIOS);
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+JAMMY'S SIGNATURE SALON — PWA PACKAGE
+
+Start with README-GITHUB-PAGES.md.
+
+IMPORTANT FIRST STEP:
+Edit config.js and paste your deployed Google Apps Script Web App URL ending in /exec.
+
+Then upload the package contents to the root of your GitHub repository named jammy-salon-pwa and enable GitHub Pages from main / (root).
+
+The existing billing backend and invoice-link-on-WhatsApp workflow are preserved. The PWA is a branded installable launcher; it does not replace the Apps Script billing app.
